@@ -1,3 +1,5 @@
+module.exports = fConnect;
+
 var mNet = require("net"),
     mOS = require("os"),
     cConnection = require("./cConnection");
@@ -23,5 +25,3 @@ function fConnect(dxOptions, fCallback) {
     fCallback(undefined, new cConnection(oSocket));
   });
 }
-
-module.exports = fConnect;

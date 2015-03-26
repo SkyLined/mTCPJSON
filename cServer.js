@@ -1,3 +1,5 @@
+module.exports = cServer;
+
 var mEvents = require("events"),
     mNet = require("net"),
     mOS = require("os"),
@@ -56,5 +58,3 @@ cServer.prototype.fStop = function cServer_fClose(bDisconnect) {
   oThis.bAcceptConnections = false;
   oThis.oServerSocket.close();
 }
-
-module.exports = cServer;

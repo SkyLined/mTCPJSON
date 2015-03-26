@@ -1,3 +1,5 @@
+module.exports = cConnection;
+
 var guMaxMessageLength = 1000000; // bytes
 
 var mEvents = require("events"),
@@ -35,12 +37,6 @@ function cConnection(oSocket) {
       fCallback(false);
     });
     oThis.emit("disconnect");
-  });
-  this.oSocket.write(sData, function () {
-    if (fCallback) {
-      oThis.afPendingCallbacks.splice(oThis.afPendingCallbacks.indexOf(fCallback), 1);
-      fCallback(true);
-    }
   });
 }
 mUtil.inherits(cConnection, mEvents.EventEmitter);
@@ -120,5 +116,3 @@ function cConnection_fsParseMessages(oThis, sBuffer) {
     }
   }
 }
-
-module.exports = cConnection;
