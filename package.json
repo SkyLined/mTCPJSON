@@ -1,0 +1,32 @@
+{
+  "name": "mtcpjson",
+  "description": "Module with classes to send and receive data as JSON over TCP",
+  "keywords": [
+    "TCP",
+    "JSON",
+    "remote",
+    "network",
+    "data",
+    "server",
+    "client",
+    "stream"
+  ],
+  "version": "0.0.0",
+  "author": {
+    "name": "SkyLined",
+    "email": "berendjanwever@gmail.com",
+    "url": "https://github.com/SkyLined"
+  },
+  "bugs": {
+    "url": "https://github.com/SkyLined/mTCPJSON/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/SkyLined/mTCPJSON"
+  },
+  "main": "./index.js",
+  "engines": {
+    "node": ">=0.8.0"
+  },
+  "license": "CC0-1.0"
+}
