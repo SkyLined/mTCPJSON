@@ -10,30 +10,28 @@ function cConnection(oSocket) {
   // emits: error, message, disconnect
   var oThis = this;
   
-  oThis.oSocket = oSocket;
-  oThis.uIPVersion = {"IPv4": 4, "IPv6": 6}[oSocket.remoteFamily];
-  if (!oThis.uIPVersion) throw new Error("Unknown protocol " + oSocket.remoteFamily);
-  oThis.sHostname = oSocket.remoteAddress;
-  oThis.uPort = oSocket.remotePort;
-  oThis.sId = "TCP" + oThis.uIPVersion + "@" + oThis.sHostname + ":" + oThis.uPort;
-  oThis.bProtocolChecked = false;
-  oThis.bClosed = false;
-  oThis.bAcceptMessages = true;
+  oThis._oSocket = oSocket;
+  var uIPVersion = {"IPv4": 4, "IPv6": 6}[oSocket.remoteFamily],
+      sHostname = oSocket.remoteAddress,
+      uPort = oSocket.remotePort;
+  if (!uIPVersion) throw new Error("Unknown protocol " + oSocket.remoteFamily);
+  oThis._sToString = "TCP" + uIPVersion + "@" + sHostname + ":" + uPort;
+  oThis._bAcceptMessages = true;
   
-  oThis.afPendingCallbacks = [];
-  oThis.oSocket.on("error", function cConnection_on_oSocket_error(oError) {
+  oThis._afPendingCallbacks = [];
+  oThis._oSocket.on("error", function cConnection_on_oSocket_error(oError) {
     oThis.emit("error", oError); // pass-through
-    oThis.oSocket.close();
+    oThis._oSocket.close();
   });
   var sBuffer = "";
-  oThis.oSocket.on("data", function(oMessage) {
-    if (oThis.bAcceptMessages) {
+  oThis._oSocket.on("data", function(oMessage) {
+    if (oThis._bAcceptMessages) {
       sBuffer += oMessage.toString();
       sBuffer = cConnection_fsParseMessages(oThis, sBuffer) || "";
     }
   });
-  oThis.oSocket.on("close", function(bError) {
-    oThis.afPendingCallbacks.forEach(function (fCallback) {
+  oThis._oSocket.on("close", function(bError) {
+    oThis._afPendingCallbacks.forEach(function (fCallback) {
       fCallback(false);
     });
     oThis.emit("disconnect");
@@ -41,25 +39,29 @@ function cConnection(oSocket) {
 }
 mUtil.inherits(cConnection, mEvents.EventEmitter);
 
+cConnection.prototype.toString = function cConnection_toString() {
+  var oThis = this;
+  return oThis._sToString;
+};
 cConnection.prototype.fSendMessage = function cConnection_fSendMessage(xMessage, fCallback) {
   var oThis = this;
   var sMessage = JSON.stringify(xMessage);
   if (sMessage.length > guMaxMessageLength) {
     throw new Error("Message is too large to send");
   }
-  if (fCallback) oThis.afPendingCallbacks.push(fCallback);
+  if (fCallback) oThis._afPendingCallbacks.push(fCallback);
   var sData = sMessage.length + ";" + sMessage + ";";
-  this.oSocket.write(sData, function () {
+  oThis._oSocket.write(sData, function () {
     if (fCallback) {
-      oThis.afPendingCallbacks.splice(oThis.afPendingCallbacks.indexOf(fCallback), 1);
+      oThis._afPendingCallbacks.splice(oThis._afPendingCallbacks.indexOf(fCallback), 1);
       fCallback(true);
     }
   });
 }
 cConnection.prototype.fDisconnect = function cConnection_fDisconnect() {
   var oThis = this;
-  oThis.bAcceptMessages = false;
-  oThis.oSocket.end();
+  oThis._bAcceptMessages = false;
+  oThis._oSocket.end();
 }
 
 function cConnection_fsParseMessages(oThis, sBuffer) {

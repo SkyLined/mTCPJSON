@@ -11,7 +11,7 @@ function startServer(fCallback) {
     fCallback(oServer);
   });
   oServer.on("connect", function (oServerSideConnection) {
-    console.log("Server:connect (oConnection =", oServerSideConnection.sId, ")");
+    console.log("Server:connect (oConnection = " + oServerSideConnection.toString() + ")");
     oServerSideConnection.on("error", function () {
       console.log("Server>Connection:error");
     });
@@ -23,7 +23,7 @@ function startServer(fCallback) {
     });
   });
   oServer.on("disconnect", function (oServerSideConnection) {
-    console.log("Server:disconnect (oConnection =", oServerSideConnection.sId, ")");
+    console.log("Server:disconnect (oConnection = " + oServerSideConnection.toString() + ")");
   });
   oServer.on("stop", function () {
     console.log("Server:stop");
@@ -35,7 +35,7 @@ function connect(dxOptions, fCallback) {
     if (oError) {
       console.log("fConnect:error", oError);
     } else {
-      console.log("fConnect:connected (oConnection =", oClientSideConnection.sId, ")");
+      console.log("fConnect:connected (oConnection = " + oClientSideConnection.toString() + ")");
       oClientSideConnection.on("error", function (oError) {
         console.log("Client>Connection:error (oError =", oError, ")");
       });

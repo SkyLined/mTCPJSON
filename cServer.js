@@ -1,6 +1,7 @@
 module.exports = cServer;
 
-var mEvents = require("events"),
+var mDNS = require("dns"),
+    mEvents = require("events"),
     mNet = require("net"),
     mOS = require("os"),
     mUtil = require("util"),
@@ -12,29 +13,27 @@ function cServer(dxOptions) {
   // emits: error, start, connect, disconnect, stop
   var oThis = this;
   dxOptions = dxOptions || {};
-  oThis.uIPVersion = dxOptions.uIPVersion || 4;
-  oThis.sHostname = dxOptions.sHostname || mOS.hostname();
-  oThis.uPort = dxOptions.uPort || 28876;
-  oThis.uConnectionKeepAlive = dxOptions.uConnectionKeepAlive;
-  oThis.oServerSocket = mNet.createServer();
-  oThis.bServing = false;
-  oThis.bAcceptConnections = true; // will be set to false when fStop is called.
-  oThis.oServerSocket.on("error", function cServer_on_oServerSocket_error(oError) {
+  var uIPVersion = dxOptions.uIPVersion || 4,
+      sHostname = dxOptions.sHostname || mOS.hostname(),
+      uPort = dxOptions.uPort || 28876,
+      uConnectionKeepAlive = dxOptions.uConnectionKeepAlive;
+ oThis._sToString = "TCP" + uIPVersion + "@" + sHostname + ":" + uPort;
+ oThis._oServerSocket = mNet.createServer();
+  oThis._bAcceptConnections = true; // will be set to false when fStop is called.
+  oThis._oServerSocket.on("error", function cServer_on_oServerSocket_error(oError) {
     oThis.emit("error", oError); // pass-through
   });
-  oThis.oServerSocket.on("listening", function cServer_on_oServerSocket_listening() {
-    oThis.bServing = true;
+  oThis._oServerSocket.on("listening", function cServer_on_oServerSocket_listening() {
     oThis.emit("start"); // pass-through
   });
-  oThis.oServerSocket.on("close", function cServer_on_oServerSocket_close() {
-    oThis.bServing = false;
-    oThis.oServerSocket = null;
+  oThis._oServerSocket.on("close", function cServer_on_oServerSocket_close() {
+    oThis._oServerSocket = null;
     oThis.emit("stop");
   });
-  oThis.oServerSocket.on("connection", function cServer_on_oServerSocket_connection(oSocket) {
-    if (oThis.bAcceptConnections) {
-      if (oThis.uConnectionKeepAlive) {
-        oSocket.setKeepAlive(true, oThis.uConnectionKeepAlive);
+  oThis._oServerSocket.on("connection", function cServer_on_oServerSocket_connection(oSocket) {
+    if (oThis._bAcceptConnections) {
+      if (uConnectionKeepAlive) {
+        oSocket.setKeepAlive(true, uConnectionKeepAlive);
       }
       var oConnection = new cConnection(oSocket);
       oThis.emit("connect", oConnection);
@@ -45,16 +44,29 @@ function cServer(dxOptions) {
       oSocket.close();
     }
   });
-  oThis.oServerSocket.listen({
-    "address": oThis.sHostname,
-    "port": oThis.uPort,
-    "exclusive": false,
+  mDNS.lookup(sHostname, {"family": uIPVersion}, function (oError, sAddress, uFamily) {
+    if (oError) {
+      oThis.emit("error", oError);
+    } else if (uFamily != uIPVersion) {
+      oThis.emit("error", new Error("requested address for IPv" + uIPVersion + ", got IPv" + uFamily));
+    } else {
+      oThis._oServerSocket.listen({
+        "address": sAddress,
+        "port": uPort,
+        "exclusive": true,
+      });
+    }
   });
 }
 mUtil.inherits(cServer, mEvents.EventEmitter);
 
+cServer.prototype.toString = function cServer_toString() {
+  var oThis = this;
+  return oThis._sToString;
+};
+
 cServer.prototype.fStop = function cServer_fClose(bDisconnect) {
   var oThis = this;
-  oThis.bAcceptConnections = false;
-  oThis.oServerSocket.close();
+  oThis._bAcceptConnections = false;
+  oThis._oServerSocket.close();
 }

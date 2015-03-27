@@ -63,7 +63,7 @@ to the local machine.
 `cConnection.fSendMessage` is used to send a message that consist of one value
 converted to a string using `JSON.stringify`. `cConnection` emits one `message`
 event for each such message received, with two parameters. The first parameter
-is an `Error` object if an invalid message was received or undefined if the
+is an `Error` object if an invalid message was received or `undefined` if the
 message was valid. The second parameter is the value that was sent,
 reconstructed from the data in the message using `JSON.parse`.
 
@@ -94,7 +94,9 @@ Can be used to accept connections, through which you can send values as JSON.
 ##### `[new] mTCPJSON.cServer(Object dxOptions);`
 Where `dxOptions` is an object that can have the following properties:
 - `Number uIPVersion`: IP version to use (valid values: 4 (default), 6).
-- `String sHostname`: Target computer (default: broadcast to local subnet).
+- `String sHostname`: Network device to bind to (default: computer name, use
+             `localhost` if you want to accept connections only from scripts
+             running on the same machine).
 - `Number uPort`: port number to send to (default: 28876).
 - `Number uConnectionKeepAlive`: Enable sending [TCP keep-alive](http://en.wikipedia.org/wiki/Keepalive#TCP_keepalive)
           packets every `uConnectionKeepAlive` milliseconds.
@@ -126,7 +128,7 @@ Where `dxOptions` is an object that can have the following properties:
 `fConnect` attempts to establish a connection of a `cServer` instance using the
 provided `dxOptions`. `fCallback(Error oError, cConnection oConnection)` is
 called when a connection cannot be established (`oError` will contain details)
-or when a connection has been established (`oError` is `undefined`).
+or when a connection has been established (`oError` will be `undefined`).
 
 ### `class cConnection`
 Represent connections through which data can be transmitted as JSON messages.
@@ -139,7 +141,7 @@ Emitted when there is a network error.
 ##### `message`, parameters: `Error oError`, `Any xData`
 Emitted when the `cConnection` instance has received a message. If the message
 was invalid, `oError` will contain a description of the problem. Otherwise,
-`oError` will be undefined and xData will contain the data sent by the
+`oError` will be `undefined` and `xData` will contain the data sent by the
 `cConnection` instance on the other end of the connection.
 ##### `disconnect`
 Emitted when the `cConnection` instance has stopped receiving messages. This
