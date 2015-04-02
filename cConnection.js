@@ -21,7 +21,6 @@ function cConnection(oSocket) {
   oThis._afPendingCallbacks = [];
   oThis._oSocket.on("error", function cConnection_on_oSocket_error(oError) {
     oThis.emit("error", oError); // pass-through
-    oThis._oSocket.close();
   });
   var sBuffer = "";
   oThis._oSocket.on("data", function(oMessage) {
