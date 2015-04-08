@@ -15,7 +15,7 @@ function cConnection(oSocket) {
       sHostname = oSocket.remoteAddress,
       uPort = oSocket.remotePort;
   if (!uIPVersion) throw new Error("Unknown protocol " + oSocket.remoteFamily);
-  oThis._sToString = "TCP" + uIPVersion + "@" + sHostname + ":" + uPort;
+  oThis._sToString = "JSON@TCP" + uIPVersion + "@" + sHostname + ":" + uPort;
   oThis._bAcceptMessages = true;
   
   oThis._afPendingCallbacks = [];
@@ -30,8 +30,12 @@ function cConnection(oSocket) {
     }
   });
   oThis._oSocket.on("close", function(bError) {
-    oThis._afPendingCallbacks.forEach(function (fCallback) {
-      fCallback(false);
+    var oError = new Error("Connection closed");
+    oThis._afPendingCallbacks.filter(function (fCallback) {
+      process.nextTick(function() {
+        fCallback(oError);
+      });
+      return false;
     });
     oThis.emit("disconnect");
   });
@@ -53,7 +57,7 @@ cConnection.prototype.fSendMessage = function cConnection_fSendMessage(xMessage,
   oThis._oSocket.write(sData, function () {
     if (fCallback) {
       oThis._afPendingCallbacks.splice(oThis._afPendingCallbacks.indexOf(fCallback), 1);
-      fCallback(true);
+      fCallback();
     }
   });
 }

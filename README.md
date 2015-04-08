@@ -29,9 +29,9 @@ Getting Started
         // Process xData
       }
     });
-    oTCPJSONConnection.fSendMessage("Anything that can be stringified", function (bSuccess) {
-      if (!bSuccess) {
-        // Failed to send (connection probably closed).
+    oTCPJSONConnection.fSendMessage("Anything that can be stringified", function (oError) {
+      if (oError) {
+        // Failed to send (connection was closed).
       }
     });
   });
@@ -47,9 +47,9 @@ Getting Started
       // Process xData
     }
   });
-  oTCPJSONConnection.fSendMessage("Anything that can be stringified", function (bSuccess) {
-    if (!bSuccess) {
-      // Failed to send (connection probably closed).
+  oTCPJSONConnection.fSendMessage("Anything that can be stringified", function (oError) {
+    if (oError) {
+      // Failed to send (connection was closed).
     }
   });
   ```
@@ -151,9 +151,9 @@ disconnect.
 #### Methods:
 ##### `undefined fSendMessage(Any xMessage, Function fCallback)`
 Convert the data in `xMessage` to string using `JSON.stringify` and send it to
-through the connection. `fCallback(Boolean bSuccess)` is called when the message
-has been sent (`bSuccess == true`) or when there was an error (`bSuccess ==
-false`). 
+through the connection. `fCallback(Error oError)` is called when the message
+has been sent (`oError` == `undefined`) or if there was an error (`oError` will
+contain details). 
 ##### `undefined fDisconnect()`
 Disconnect the `cConnection` instance.
 
