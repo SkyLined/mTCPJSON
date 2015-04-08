@@ -9,14 +9,15 @@ function cConnection(oSocket) {
   if (this.constructor != arguments.callee) return new arguments.callee(oSocket);
   // emits: error, message, disconnect
   var oThis = this;
-  
   oThis._oSocket = oSocket;
   var uIPVersion = {"IPv4": 4, "IPv6": 6}[oSocket.remoteFamily],
       sHostname = oSocket.remoteAddress,
       uPort = oSocket.remotePort;
   if (!uIPVersion) throw new Error("Unknown protocol " + oSocket.remoteFamily);
-  oThis._sToString = "JSON@TCP" + uIPVersion + "@" + sHostname + ":" + uPort;
-  oThis._bAcceptMessages = true;
+  var bConnected = true,
+      sId = "JSON@TCP" + uIPVersion + "@" + sHostname + ":" + uPort;
+  Object.defineProperty(oThis, "bConnected", {"get": function () { return bConnected; }});
+  Object.defineProperty(oThis, "sId", {"get": function () { return sId; }});
   
   oThis._afPendingCallbacks = [];
   oThis._oSocket.on("error", function cConnection_on_oSocket_error(oError) {
@@ -24,12 +25,11 @@ function cConnection(oSocket) {
   });
   var sBuffer = "";
   oThis._oSocket.on("data", function(oMessage) {
-    if (oThis._bAcceptMessages) {
-      sBuffer += oMessage.toString();
-      sBuffer = cConnection_fsParseMessages(oThis, sBuffer) || "";
-    }
+    sBuffer += oMessage.toString();
+    sBuffer = cConnection_fsParseMessages(oThis, sBuffer) || "";
   });
   oThis._oSocket.on("close", function(bError) {
+    bConnected = false;
     var oError = new Error("Connection closed");
     oThis._afPendingCallbacks.filter(function (fCallback) {
       process.nextTick(function() {
@@ -39,12 +39,12 @@ function cConnection(oSocket) {
     });
     oThis.emit("disconnect");
   });
-}
+};
 mUtil.inherits(cConnection, mEvents.EventEmitter);
 
 cConnection.prototype.toString = function cConnection_toString() {
   var oThis = this;
-  return oThis._sToString;
+  return oThis.sId;
 };
 cConnection.prototype.fSendMessage = function cConnection_fSendMessage(xMessage, fCallback) {
   var oThis = this;
@@ -60,12 +60,11 @@ cConnection.prototype.fSendMessage = function cConnection_fSendMessage(xMessage,
       fCallback();
     }
   });
-}
+};
 cConnection.prototype.fDisconnect = function cConnection_fDisconnect() {
   var oThis = this;
-  oThis._bAcceptMessages = false;
   oThis._oSocket.end();
-}
+};
 
 function cConnection_fsParseMessages(oThis, sBuffer) {
   while (sBuffer) {
@@ -85,9 +84,9 @@ function cConnection_fsParseMessages(oThis, sBuffer) {
           bInvalidMessageLength = uMessageLength.constructor != Number || uMessageLength <= 0 || uMessageLength > guMaxMessageLength;
         } catch (oError) {
           bInvalidMessageLength = true;
-        }
-      }
-    }
+        };
+      };
+    };
     if (bInvalidMessageLength) {
       // The remote is not making any sense, disconnect.
       oThis.emit("message", new Error("Invalid message length: " + JSON.stringify(sLength + sBuffer.charAt(uLengthEndIndex))), undefined);
@@ -113,11 +112,11 @@ function cConnection_fsParseMessages(oThis, sBuffer) {
             var xMessage = JSON.parse(sMessage);
           } catch (oJSONError) {
             var oError = oJSONError;
-          }
+          };
           sBuffer = sBuffer.substr(uMessageEndIndex + 1);
           oThis.emit("message", oError, xMessage);
-        }
-      }
-    }
-  }
-}
+        };
+      };
+    };
+  };
+};
