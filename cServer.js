@@ -72,7 +72,7 @@ cServer.prototype.toString = function cServer_toString() {
   return oThis.sId;
 };
 
-cServer.prototype.fStop = function cServer_fClose(bDisconnect) {
+cServer.prototype.fStop = function cServer_fStop(bDisconnect) {
   var oThis = this;
   oThis._bListening = false;
   oThis._oServerSocket.close();
