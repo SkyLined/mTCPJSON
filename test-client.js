@@ -1,6 +1,6 @@
 var fConnect = require("./fConnect.js");
 
-fConnect({}, function (oError, oConnection) {
+fConnect(function (oError, oConnection) {
   if (oError) {
     console.log("connection: error (" + oError.toString() + ")");
   } else {

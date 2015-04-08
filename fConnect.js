@@ -4,7 +4,7 @@ var mNet = require("net"),
     mOS = require("os"),
     cConnection = require("./cConnection");
 
-function fConnect(dxOptions, fCallback) {
+function fConnect(fCallback, dxOptions) {
   // dxOptions: uIPVersion, sHostname, uPort, uConnectionKeepAlive (ms)
   // callback args: oError, oConnection
   dxOptions = dxOptions || {};

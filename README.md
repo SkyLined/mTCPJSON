@@ -21,7 +21,8 @@ Getting Started
 3. Instantiate a cServer to accept connections and send/receive data.
   ```
   var oTCPJSONServer = new mTCPJSON.cServer();
-  oTCPJSONServer.on("connect", function (oTCPJSONConnection) {
+  oTCPJSONServer.on("connect", fHandleConnection);
+  function fHandleConnection(oTCPJSONConnection) {
     oTCPJSONConnection.on("message", function (oError, xData) {
       if (oError) {
         // Handle oError
@@ -32,40 +33,32 @@ Getting Started
     oTCPJSONConnection.fSendMessage("Anything that can be stringified", function (oError) {
       if (oError) {
         // Failed to send (connection was closed).
-      }
+      };
     });
-  });
+  };
   ```
 
 4. Create a cConnection to a server and send/receive data.
   ```
-  var oTCPJSONConnection = new mTCPJSON.fConnect();
-  oTCPJSONConnection.on("message", function (oError, xData) {
-    if (oError) {
-      // Handle oError
-    } else {
-      // Process xData
-    }
-  });
-  oTCPJSONConnection.fSendMessage("Anything that can be stringified", function (oError) {
-    if (oError) {
-      // Failed to send (connection was closed).
-    }
-  });
+  new mTCPJSON.fConnect(fHandleConnection);
   ```
+  (See step 3 above for an example implementation of `fHandleConnection`).
 
 Notes
 -----
-The `cServer` and `cConnection` instances created using `fConnect` can be on
-the same machine or on two different machines. By default `fConnect` connects
-to the local machine.
+A ''client'' instantiates a connection to a ''server'' by calling `fConnect` and
+a ''server'' accepts connections from ''clients'' by instantiating a `cServer`
+instance. A successfully established connection results in a `cConnection`
+instance for both the ''client'' and the ''server''. From that point on, both
+the ''client'' and ''server'' can send and receive JSON messages as equals.
 
 `cConnection.fSendMessage` is used to send a message that consist of one value
-converted to a string using `JSON.stringify`. `cConnection` emits one `message`
-event for each such message received, with two parameters. The first parameter
-is an `Error` object if an invalid message was received or `undefined` if the
-message was valid. The second parameter is the value that was sent,
-reconstructed from the data in the message using `JSON.parse`.
+converted to a string using `JSON.stringify`. `cConnection` instances emit one
+`message` event for each such message received, with two arguments. The first
+argument is an `Error` object when an invalid message was received or
+`undefined` if the message was valid. If the message was valid, the second
+argument is the value that was sent, reconstructed from the data in the message
+using `JSON.parse`.
 
 Protocol
 --------
@@ -91,8 +84,8 @@ API
 Can be used to accept connections, through which you can send values as JSON.
 
 #### Constructors:
-##### `[new] mTCPJSON.cServer(Object dxOptions);`
-Where `dxOptions` is an object that can have the following properties:
+##### `[new] mTCPJSON.cServer([Object dxOptions]);`
+Where `dxOptions` is an optional object that can have the following properties:
 - `Number uIPVersion`: IP version to use (valid values: 4 (default), 6).
 - `String sHostname`: Network device to bind to (default: computer name, use
              `localhost` if you want to accept connections only from scripts
@@ -108,8 +101,6 @@ Emitted when there is a network error.
 Emitted when the `cServer` instance is ready to receive connections.
 ##### `connect`, parameter: `cConnection oConnection`
 Emitted when a connection to the server is established.
-##### `disconnect`, parameter: `cConnection oConnection`
-Emitted when a connection to the server is disconnected.
 ##### `stop`
 Emitted when the `cServer` instance has stopped receiving connections. This
 can happen when there is a network error or after you tell the sender to stop.
@@ -118,8 +109,8 @@ can happen when there is a network error or after you tell the sender to stop.
 ##### `undefined fStop()`
 Stop the `cServer` instance.
 
-### `undefined fConnect(Object dxOptions, Function fCallback)
-Where `dxOptions` is an object that can have the following properties:
+### `undefined fConnect(Function fCallback[, Object dxOptions])
+Where `dxOptions` is an optional object that can have the following properties:
 - `Number uIPVersion`: IP version to use (valid values: 4 (default), 6).
 - `String sHostname`: Target computer (default: connect to local computer).
 - `Number uPort`: port number to connect to (default: 28876).
@@ -128,7 +119,8 @@ Where `dxOptions` is an object that can have the following properties:
 `fConnect` attempts to establish a connection of a `cServer` instance using the
 provided `dxOptions`. `fCallback(Error oError, cConnection oConnection)` is
 called when a connection cannot be established (`oError` will contain details)
-or when a connection has been established (`oError` will be `undefined`).
+or when a connection has been established (`oError` will be `undefined` and
+`oConnection` will contain a `cConnection` instance).
 
 ### `class cConnection`
 Represent connections through which data can be transmitted as JSON messages.

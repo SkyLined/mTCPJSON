@@ -26,7 +26,7 @@ oServer.on("connect", function (oConnection) {
 });
 
 
-fConnect({}, function (oError, oConnection) {
+fConnect(function (oError, oConnection) {
   if (oError) throw oError;
   oConnection.on("message", function (oError, xMessage) {
     if (oError) throw oError;
