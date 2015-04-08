@@ -39,13 +39,18 @@ function cServer(dxOptions) {
     oThis._doConnections[oConnection.sId] = oConnection;
     oConnection.on("disconnect", function () {
       delete oThis._doConnections[oConnection.sId];
+      if (oThis._oServerSocket == null && Object.keys(oThis._doConnections).length == 0) {
+        oThis.emit("stop"); // stop is emitted when no more connections are accepted and no connections are open.
+      };
     });
     oThis.emit("connect", oConnection);
   });
   oThis._oServerSocket.on("close", function cServer_on_oServerSocket_close() {
     oThis._bListening = false;
     oThis._oServerSocket = null;
-    oThis.emit("stop");
+    if (Object.keys(oThis._doConnections).length == 0) {
+      oThis.emit("stop"); // stop is emitted when no more connections are accepted and no connections are open.
+    };
   });
   // Wait a tick before looking up the hostname, so the caller has time to add
   // an event listener for the "error" event that this may throw.
