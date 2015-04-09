@@ -35,7 +35,7 @@ fConnect(function (oError, oConnection) {
     console.log("Enter an empty line to disconnect from the server.");
     process.stdin.resume(); // Wait for stdin, so user can type commands
     process.stdin.on("data", function (oBuffer) {
-      sMessage = oBuffer.toString("utf8").replace(/[\r\n]*$/, "");
+      var sMessage = oBuffer.toString("utf8").replace(/[\r\n]*$/, "");
       if (sMessage == "") {
         oConnection.fDisconnect();
       } else {
