@@ -12,8 +12,6 @@ function cServer(dxOptions) {
   // options: uIPVersion, sHostname, uPort, uConnectionKeepAlive
   // emits: error, start, connect, stop
   var oThis = this;
-  oThis._bListening = false,
-  Object.defineProperty(oThis, "bListening", {"get": function () { return oThis._bListening; }});
   dxOptions = dxOptions || {};
   var uIPVersion = dxOptions.uIPVersion || 4,
       sHostname = dxOptions.sHostname || mOS.hostname(),
@@ -21,14 +19,16 @@ function cServer(dxOptions) {
       uConnectionKeepAlive = dxOptions.uConnectionKeepAlive,
       sId = "JSON@TCP" + uIPVersion + "@" + sHostname + ":" + uPort;
   Object.defineProperty(oThis, "sId", {"get": function () { return sId; }});
-  
+  var bStarted = false;
+  Object.defineProperty(oThis, "bStarted", {"get": function () { return bStarted; }});
   oThis._oServerSocket = mNet.createServer();
+  Object.defineProperty(oThis, "bStopped", {"get": function () { return oThis._oServerSocket == null; }});
   oThis._doConnections = {};
   oThis._oServerSocket.on("error", function cServer_on_oServerSocket_error(oError) {
     oThis.emit("error", oError); // pass-through
   });
   oThis._oServerSocket.on("listening", function cServer_on_oServerSocket_listening() {
-    oThis._bListening = true;
+    bStarted = true;
     oThis.emit("start");
   });
   oThis._oServerSocket.on("connection", function cServer_on_oServerSocket_connection(oSocket) {
@@ -46,7 +46,6 @@ function cServer(dxOptions) {
     oThis.emit("connect", oConnection);
   });
   oThis._oServerSocket.on("close", function cServer_on_oServerSocket_close() {
-    oThis._bListening = false;
     oThis._oServerSocket = null;
     if (Object.keys(oThis._doConnections).length == 0) {
       oThis.emit("stop"); // stop is emitted when no more connections are accepted and no connections are open.
@@ -61,7 +60,7 @@ function cServer(dxOptions) {
       } else if (uFamily != uIPVersion) {
         oThis.emit("error", new Error("requested address for IPv" + uIPVersion + ", got IPv" + uFamily));
       } else {
-        oThis._oServerSocket.listen({
+        oThis._oServerSocket && oThis._oServerSocket.listen({
           "address": sAddress,
           "port": uPort,
           "exclusive": true,
@@ -79,7 +78,7 @@ cServer.prototype.toString = function cServer_toString() {
 
 cServer.prototype.fStop = function cServer_fStop(bDisconnect) {
   var oThis = this;
-  oThis._bListening = false;
+  if (oThis._oServerSocket == null) throw new Error("The server is already stopped");
   oThis._oServerSocket.close();
   if (bDisconnect) for (var sId in oThis._doConnections) {
     oThis._doConnections[sId].fDisconnect();

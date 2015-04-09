@@ -9,15 +9,14 @@ function cConnection(oSocket) {
   if (this.constructor != arguments.callee) return new arguments.callee(oSocket);
   // emits: error, message, disconnect
   var oThis = this;
-  oThis._oSocket = oSocket;
   var uIPVersion = {"IPv4": 4, "IPv6": 6}[oSocket.remoteFamily],
       sHostname = oSocket.remoteAddress,
       uPort = oSocket.remotePort;
   if (!uIPVersion) throw new Error("Unknown protocol " + oSocket.remoteFamily);
-  var bConnected = true,
-      sId = "JSON@TCP" + uIPVersion + "@" + sHostname + ":" + uPort;
-  Object.defineProperty(oThis, "bConnected", {"get": function () { return bConnected; }});
+  var sId = "JSON@TCP" + uIPVersion + "@" + sHostname + ":" + uPort;
   Object.defineProperty(oThis, "sId", {"get": function () { return sId; }});
+  oThis._oSocket = oSocket;
+  Object.defineProperty(oThis, "bConnected", {"get": function () { return oThis._oSocket != null; }});
   
   oThis._afPendingCallbacks = [];
   oThis._oSocket.on("error", function cConnection_on_oSocket_error(oError) {
@@ -29,8 +28,8 @@ function cConnection(oSocket) {
     sBuffer = cConnection_fsParseMessages(oThis, sBuffer) || "";
   });
   oThis._oSocket.on("close", function(bError) {
-    bConnected = false;
-    var oError = new Error("Connection closed");
+    oThis._oSocket = null;
+    var oError = new Error("The connection is disconnected");
     oThis._afPendingCallbacks.filter(function (fCallback) {
       process.nextTick(function() {
         fCallback(oError);
@@ -48,21 +47,26 @@ cConnection.prototype.toString = function cConnection_toString() {
 };
 cConnection.prototype.fSendMessage = function cConnection_fSendMessage(xMessage, fCallback) {
   var oThis = this;
-  var sMessage = JSON.stringify(xMessage);
-  if (sMessage.length > guMaxMessageLength) {
-    throw new Error("Message is too large to send");
-  }
-  if (fCallback) oThis._afPendingCallbacks.push(fCallback);
-  var sData = sMessage.length + ";" + sMessage + ";";
-  oThis._oSocket.write(sData, function () {
-    if (fCallback) {
-      oThis._afPendingCallbacks.splice(oThis._afPendingCallbacks.indexOf(fCallback), 1);
-      fCallback();
+  if (oThis._oSocket == null) {
+    fCallback(new Error("The connection is disconnected"));
+  } else {
+    var sMessage = JSON.stringify(xMessage);
+    if (sMessage.length > guMaxMessageLength) {
+      throw new Error("Message is too large to send");
     }
-  });
+    if (fCallback) oThis._afPendingCallbacks.push(fCallback);
+    var sData = sMessage.length + ";" + sMessage + ";";
+    oThis._oSocket.write(sData, function () {
+      if (fCallback) {
+        oThis._afPendingCallbacks.splice(oThis._afPendingCallbacks.indexOf(fCallback), 1);
+        fCallback();
+      };
+    });
+  };
 };
 cConnection.prototype.fDisconnect = function cConnection_fDisconnect() {
   var oThis = this;
+  if (oThis._oSocket == null) throw new Error("The connection is already disconnected");
   oThis._oSocket.end();
 };
 
