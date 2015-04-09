@@ -91,7 +91,8 @@ Where `dxOptions` is an optional object that can have the following properties:
              `localhost` if you want to accept connections only from scripts
              running on the same machine).
 - `Number uPort`: port number to send to (default: 28876).
-- `Number uConnectionKeepAlive`: Enable sending [TCP keep-alive](http://en.wikipedia.org/wiki/Keepalive#TCP_keepalive)
+- `Number uConnectionKeepAlive`: Enable sending [TCP keep-alive]
+          (http://en.wikipedia.org/wiki/Keepalive#TCP_keepalive)
           packets every `uConnectionKeepAlive` milliseconds.
 
 #### Events:
@@ -106,15 +107,20 @@ Emitted when the `cServer` instance has stopped receiving connections. This
 can happen when there is a network error or after you tell the sender to stop.
 
 #### Methods:
-##### `undefined fStop()`
-Stop the `cServer` instance.
+##### `undefined fStop(bDisconnect)`
+Stop the `cServer` instance. If `bDisconnect` is `false`, the server stops
+accepting new connections and will wait for existing connections to close. If
+`bDisconnect` is true, the server will also disconnect all existing connections.
+The server will emit a `stop` event as soon as it no longer accepts new
+connections and there are no more open connections.
 
 ### `undefined fConnect(Function fCallback[, Object dxOptions])
 Where `dxOptions` is an optional object that can have the following properties:
 - `Number uIPVersion`: IP version to use (valid values: 4 (default), 6).
 - `String sHostname`: Target computer (default: connect to local computer).
 - `Number uPort`: port number to connect to (default: 28876).
-- `Number uConnectionKeepAlive`: Enable sending [TCP keep-alive](http://en.wikipedia.org/wiki/Keepalive#TCP_keepalive)
+- `Number uConnectionKeepAlive`: Enable sending [TCP keep-alive]
+          (http://en.wikipedia.org/wiki/Keepalive#TCP_keepalive)
           packets every `uConnectionKeepAlive` milliseconds.
 `fConnect` attempts to establish a connection of a `cServer` instance using the
 provided `dxOptions`. `fCallback(Error oError, cConnection oConnection)` is
