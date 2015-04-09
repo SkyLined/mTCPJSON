@@ -42,3 +42,6 @@ Network Trash Folder
 Temporary Items
 .apdisk
 .gitattributes
+node_modules/
+npm-debug.log
+publish.cmd
