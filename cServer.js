@@ -1,11 +1,11 @@
 module.exports = cServer;
 
-var mDNS = require("dns"),
+var cConnection = require("./cConnection"),
+    mDNS = require("dns"),
     mEvents = require("events"),
     mNet = require("net"),
     mOS = require("os"),
-    mUtil = require("util"),
-    cConnection = require("./cConnection");
+    mUtil = require("util");
 
 function cServer(dxOptions) {
   if (this.constructor != arguments.callee) return new arguments.callee(dxOptions);
@@ -22,7 +22,9 @@ function cServer(dxOptions) {
   var bStarted = false;
   Object.defineProperty(oThis, "bStarted", {"get": function () { return bStarted; }});
   oThis._oServerSocket = mNet.createServer();
-  Object.defineProperty(oThis, "bStopped", {"get": function () { return oThis._oServerSocket == null; }});
+  Object.defineProperty(oThis, "bStopped", {"get": function () {
+    return oThis._oServerSocket == null && Object.keys(oThis._doConnections).length == 0;
+  }});
   oThis._doConnections = {};
   oThis._oServerSocket.on("error", function cServer_on_oServerSocket_error(oError) {
     oThis.emit("error", oError); // pass-through
@@ -39,17 +41,13 @@ function cServer(dxOptions) {
     oThis._doConnections[oConnection.sId] = oConnection;
     oConnection.on("disconnect", function () {
       delete oThis._doConnections[oConnection.sId];
-      if (oThis._oServerSocket == null && Object.keys(oThis._doConnections).length == 0) {
-        oThis.emit("stop"); // stop is emitted when no more connections are accepted and no connections are open.
-      };
+      if (oThis.bStopped) oThis.emit("stop");
     });
     oThis.emit("connect", oConnection);
   });
   oThis._oServerSocket.on("close", function cServer_on_oServerSocket_close() {
     oThis._oServerSocket = null;
-    if (Object.keys(oThis._doConnections).length == 0) {
-      oThis.emit("stop"); // stop is emitted when no more connections are accepted and no connections are open.
-    };
+    if (oThis.bStopped) oThis.emit("stop");
   });
   // Wait a tick before looking up the hostname, so the caller has time to add
   // an event listener for the "error" event that this may throw.
@@ -68,7 +66,7 @@ function cServer(dxOptions) {
       };
     });
   });
-}
+};
 mUtil.inherits(cServer, mEvents.EventEmitter);
 
 cServer.prototype.toString = function cServer_toString() {
@@ -78,8 +76,7 @@ cServer.prototype.toString = function cServer_toString() {
 
 cServer.prototype.fStop = function cServer_fStop(bDisconnect) {
   var oThis = this;
-  if (oThis._oServerSocket == null) throw new Error("The server is already stopped");
-  oThis._oServerSocket.close();
+  oThis._oServerSocket && oThis._oServerSocket.close();
   if (bDisconnect) for (var sId in oThis._doConnections) {
     oThis._doConnections[sId].fDisconnect();
   };

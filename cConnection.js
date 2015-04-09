@@ -66,8 +66,7 @@ cConnection.prototype.fSendMessage = function cConnection_fSendMessage(xMessage,
 };
 cConnection.prototype.fDisconnect = function cConnection_fDisconnect() {
   var oThis = this;
-  if (oThis._oSocket == null) throw new Error("The connection is already disconnected");
-  oThis._oSocket.end();
+  oThis._oSocket && oThis._oSocket.end();
 };
 
 function cConnection_fsParseMessages(oThis, sBuffer) {
