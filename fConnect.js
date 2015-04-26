@@ -2,15 +2,16 @@ module.exports = fConnect;
 
 var mNet = require("net"),
     mOS = require("os"),
+    mSettings = require("./mSettings.js"),
     cConnection = require("./cConnection");
 
 function fConnect(fCallback, dxOptions) {
   // dxOptions: uIPVersion, sHostname, uPort, uConnectionKeepAlive (ms)
   // callback args: oError, oConnection
   dxOptions = dxOptions || {};
-  var uIPVersion = dxOptions.uIPVersion || 4;
+  var uIPVersion = dxOptions.uIPVersion || mSettings.uIPVersion;
   var sHostname = dxOptions.sHostname || mOS.hostname();
-  var uPort = dxOptions.uPort || 28876;
+  var uPort = dxOptions.uPort || mSettings.uPort;
   var uConnectionKeepAlive = dxOptions.uConnectionKeepAlive;
   var oSocket = mNet.connect({"host": sHostname, "port": uPort, "family": uIPVersion});
   if (uConnectionKeepAlive) {

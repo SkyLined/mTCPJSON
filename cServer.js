@@ -5,6 +5,7 @@ var cConnection = require("./cConnection"),
     mEvents = require("events"),
     mNet = require("net"),
     mOS = require("os"),
+    mSettings = require("./mSettings"),
     mUtil = require("util");
 
 function cServer(dxOptions) {
@@ -13,9 +14,9 @@ function cServer(dxOptions) {
   // emits: error, start, connect, stop
   var oThis = this;
   dxOptions = dxOptions || {};
-  var uIPVersion = dxOptions.uIPVersion || 4,
+  var uIPVersion = dxOptions.uIPVersion || mSettings.uIPVersion,
       sHostname = dxOptions.sHostname || mOS.hostname(),
-      uPort = dxOptions.uPort || 28876,
+      uPort = dxOptions.uPort || mSettings.uPort,
       uConnectionKeepAlive = dxOptions.uConnectionKeepAlive,
       sId = "JSON@TCP" + uIPVersion + "@" + sHostname + ":" + uPort;
   Object.defineProperty(oThis, "sId", {"get": function () { return sId; }});
