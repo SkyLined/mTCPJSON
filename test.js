@@ -1,11 +1,10 @@
-var cServer = require("./cServer.js"),
-    fConnect = require("./fConnect.js");
+var mTCPJSON = require("./index");
 
 var uMessages = 3,
     uReceivedClientMessages = 0,
     uReceivedServerMessages = 0;
 
-var oServer = new cServer();
+var oServer = new mTCPJSON.cServer();
 oServer.on("connect", function (oConnection) {
   oServer.fStop(); // After one connection is made, the server is no longer needed
   oConnection.on("message", function (oError, xMessage) {
@@ -25,8 +24,7 @@ oServer.on("connect", function (oConnection) {
   };
 });
 
-
-fConnect(function (oError, oConnection) {
+mTCPJSON.fConnect(function (oError, oConnection) {
   if (oError) throw oError;
   oConnection.on("message", function (oError, xMessage) {
     if (oError) throw oError;
