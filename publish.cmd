@@ -1,6 +1,11 @@
 @ECHO OFF
 CALL :SET_TITLE "%~dp0"
 :START
+  CALL npm install
+  IF ERRORLEVEL 1 (
+    ECHO === Installing dependencies failed!
+    GOTO :ERROR
+  )
   CALL node test.js
   IF ERRORLEVEL 1 (
     ECHO === Test failed!
