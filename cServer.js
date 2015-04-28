@@ -5,18 +5,18 @@ var cConnection = require("./cConnection"),
     mEvents = require("events"),
     mNet = require("net"),
     mOS = require("os"),
-    mSettings = require("./mSettings"),
+    dxSettings = require("./dxSettings"),
     mUtil = require("util");
 
 function cServer(dxOptions) {
-  if (this.constructor != arguments.callee) return new arguments.callee(dxOptions);
+  if (this.constructor != arguments.callee) throw new Error("This is a constructor, not a function");
   // options: uIPVersion, sHostname, uPort, uConnectionKeepAlive
   // emits: error, start, connect, stop
   var oThis = this;
   dxOptions = dxOptions || {};
-  var uIPVersion = dxOptions.uIPVersion || mSettings.uIPVersion,
+  var uIPVersion = dxOptions.uIPVersion || dxSettings.uIPVersion,
       sHostname = dxOptions.sHostname || mOS.hostname(),
-      uPort = dxOptions.uPort || mSettings.uPort,
+      uPort = dxOptions.uPort || dxSettings.uPort,
       uConnectionKeepAlive = dxOptions.uConnectionKeepAlive,
       sId = "JSON@TCP" + uIPVersion + "@" + sHostname + ":" + uPort;
   Object.defineProperty(oThis, "sId", {"get": function () { return sId; }});

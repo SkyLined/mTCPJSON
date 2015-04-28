@@ -2,11 +2,11 @@ module.exports = cConnection;
 
 var cConnection_fsParseMessages = require("./cConnection_fsParseMessages"),
     mEvents = require("events"),
-    mSettings = require("./mSettings"),
+    dxSettings = require("./dxSettings"),
     mUtil = require("util");
 
 function cConnection(oSocket) {
-  if (this.constructor != arguments.callee) return new arguments.callee(oSocket);
+  if (this.constructor != arguments.callee) throw new Error("This is a constructor, not a function");
   // emits: error, message, disconnect
   var oThis = this;
   var uIPVersion = {"IPv4": 4, "IPv6": 6}[oSocket.remoteFamily],
@@ -51,7 +51,7 @@ cConnection.prototype.fSendMessage = function cConnection_fSendMessage(xMessage,
     fCallback(new Error("The connection is disconnected"));
   } else {
     var sMessage = JSON.stringify(xMessage);
-    if (sMessage.length > mSettings.uMaxMessageLength) {
+    if (sMessage.length > dxSettings.uMaxMessageLength) {
       throw new Error("Message is too large to send");
     }
     if (fCallback) oThis._afPendingCallbacks.push(fCallback);
