@@ -11,23 +11,24 @@ function cConnection(oSocket) {
   var oThis = this;
   var uIPVersion = {"IPv4": 4, "IPv6": 6}[oSocket.remoteFamily];
   if (!uIPVersion) throw new Error("Unknown protocol " + oSocket.remoteFamily);
-  Object.defineProperty(oThis, "uIPVersion", {
-    "get": function() { return uIPVersion; },
-  });
-  Object.defineProperty(oThis, "sRemoteIP", {
-    "get": function() { return oSocket.remoteAddress; }
-  });
-  Object.defineProperty(oThis, "uRemotePort", {
-    "get": function() { return oSocket.remotePort; }
-  });
-  var sId = "JSON@TCP" + uIPVersion + "@" + oSocket.remoteAddress + ":" + oSocket.remotePort;
+  Object.defineProperty(oThis, "uIPVersion", { "get": function() { return uIPVersion; }, });
+  var sRemoteIP = oSocket.remoteAddress,
+      uRemotePort = oSocket.remotePort,
+      sId = "JSON@TCP" + uIPVersion + "@" + sRemoteIP + ":" + uRemotePort;
+  Object.defineProperty(oThis, "sRemoteIP", { "get": function() { return sRemoteIP; } });
+  Object.defineProperty(oThis, "uRemotePort", { "get": function() { return uRemotePort; } });
   Object.defineProperty(oThis, "sId", {"get": function () { return sId; }});
   oThis._oSocket = oSocket;
   Object.defineProperty(oThis, "bConnected", {"get": function () { return oThis._oSocket != null; }});
   
   oThis._afPendingCallbacks = [];
   oThis._oSocket.on("error", function cConnection_on_oSocket_error(oError) {
-    oThis.emit("error", oError); // pass-through
+    switch (oError.errno) {
+      case "ECONNRESET": // A disconnect is not considered an error per se.
+        break;
+      default:
+        oThis.emit("error", oError);
+    };
   });
   var sBuffer = "";
   oThis._oSocket.on("data", function(oMessage) {
