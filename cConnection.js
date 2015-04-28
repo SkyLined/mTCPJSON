@@ -9,11 +9,18 @@ function cConnection(oSocket) {
   if (this.constructor != arguments.callee) throw new Error("This is a constructor, not a function");
   // emits: error, message, disconnect
   var oThis = this;
-  var uIPVersion = {"IPv4": 4, "IPv6": 6}[oSocket.remoteFamily],
-      sHostname = oSocket.remoteAddress,
-      uPort = oSocket.remotePort;
+  var uIPVersion = {"IPv4": 4, "IPv6": 6}[oSocket.remoteFamily];
   if (!uIPVersion) throw new Error("Unknown protocol " + oSocket.remoteFamily);
-  var sId = "JSON@TCP" + uIPVersion + "@" + sHostname + ":" + uPort;
+  Object.defineProperty(oThis, "uIPVersion", {
+    "get": function() { return uIPVersion; },
+  });
+  Object.defineProperty(oThis, "sRemoteIP", {
+    "get": function() { return oSocket.remoteAddress; }
+  });
+  Object.defineProperty(oThis, "uRemotePort", {
+    "get": function() { return oSocket.remotePort; }
+  });
+  var sId = "JSON@TCP" + uIPVersion + "@" + oSocket.remoteAddress + ":" + oSocket.remotePort;
   Object.defineProperty(oThis, "sId", {"get": function () { return sId; }});
   oThis._oSocket = oSocket;
   Object.defineProperty(oThis, "bConnected", {"get": function () { return oThis._oSocket != null; }});
