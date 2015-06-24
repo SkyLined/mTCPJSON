@@ -17,7 +17,7 @@ function cServer(dxOptions) {
   var uIPVersion = dxOptions.uIPVersion || dxSettings.uIPVersion,
       sHostname = dxOptions.sHostname || mOS.hostname(),
       uPort = dxOptions.uPort || dxSettings.uPort,
-      uConnectionKeepAlive = dxOptions.uConnectionKeepAlive,
+      uConnectionKeepAlive = dxOptions.uConnectionKeepAlive || dxSettings.uConnectionKeepAlive,
       sId = "JSON@TCP" + uIPVersion + "@" + sHostname + ":" + uPort;
   Object.defineProperty(oThis, "sId", {"get": function () { return sId; }});
   var bStarted = false;
